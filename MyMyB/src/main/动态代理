@@ -1,0 +1,75 @@
+动态代理（Dynamic Proxy）是一种在Java编程中广泛使用的设计模式，它允许开发者在运行时创建一个实现了一组给定接口的代理对象。这种技术主要用于拦截对实际对象的方法调用，以便在调用实际方法之前或之后执行额外的操作。动态代理主要用于下面几个方面：
+
+1. **拦截器（Interceptor）**:
+   动态代理可以在方法调用前后添加拦截器，实现例如日志记录、权限检查、事务处理等功能。
+
+2. **远程方法调用（Remote Method Invocation, RMI）**:
+   动态代理经常用于RMI和其他远程通信机制，允许方法调用在网络上的不同机器间进行传输。
+
+3. **依赖注入（Dependency Injection）**:
+   框架如Spring或EJB使用动态代理来注入依赖项。
+
+4. **切面编程（Aspect-Oriented Programming, AOP）**:
+   动态代理是实现AOP的一种方法，它允许开发者定义横切关注点（如日志、安全等），而不需要修改实际执行业务逻辑的代码。
+
+### 实现方式
+
+Java提供了至少两种实现动态代理的方式：
+
+1. **基于接口的动态代理（JDK Dynamic Proxy）**:
+   - 使用`java.lang.reflect.Proxy`类和`java.lang.reflect.InvocationHandler`接口实现。
+   - 只能代理接口（不是类）的方法调用。
+   - `InvocationHandler`实现会定义代理对象的行为。
+
+2. **基于类的动态代理（如CGLIB, ByteBuddy）**:
+   - 当需要代理的是类而非接口时使用。
+   - 使用字节码生成技术来创建实际类的子类。
+   - 在Spring等框架中广泛使用。
+
+### 示例
+
+一个基于JDK的动态代理实例可能如下所示：
+
+```java
+public interface MyInterface {
+    void performAction();
+}
+
+public class MyInterfaceImpl implements MyInterface {
+    public void performAction() {
+        // 实际操作
+    }
+}
+
+public class MyInvocationHandler implements InvocationHandler {
+    private final Object target;
+
+    public MyInvocationHandler(Object target) {
+        this.target = target;
+    }
+
+    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+        // 在实际方法调用前的操作
+        System.out.println("Before method call");
+
+        // 调用实际方法
+        Object result = method.invoke(target, args);
+
+        // 在实际方法调用后的操作
+        System.out.println("After method call");
+
+        return result;
+    }
+}
+
+// 使用Proxy类创建动态代理
+MyInterface proxy = (MyInterface) Proxy.newProxyInstance(
+    MyInterface.class.getClassLoader(),
+    new Class[] { MyInterface.class },
+    new MyInvocationHandler(new MyInterfaceImpl())
+);
+
+proxy.performAction();
+```
+
+在这个例子中，`MyInvocationHandler`在`performAction`方法被调用前后添加了额外的打印操作。这种方式使得开发者能够在不改变原有类代码的情况下，为方法调用添加额外的功能。

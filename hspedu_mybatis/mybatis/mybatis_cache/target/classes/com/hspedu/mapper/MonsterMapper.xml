@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--老师解读
+1. 这是一个mapper xml 文件
+2. 该文件可以去实现对应的接口的方法
+3. namespace 指定该xml文件和哪个接口对应!!!
+-->
+<mapper namespace="com.hspedu.mapper.MonsterMapper">
+
+    <!--
+        1、配置二级缓存： 是mybatis自带
+        2、FIFO – 先进先出：按对象进入缓存的顺序来移除它们。
+        3. flushInterval 刷新间隔 是毫秒单位 60000 表示 60s
+        4. size="512": 引用数目, 属性可以被设置为任意正整数, 默认1024
+        5. readOnly="true": (只读）属性可以被设置为 true 或 false: 如果我们只是用于读操作,
+        建议设置成 true, 这样可以提示效率, 如果有修改操作，设置成 false, 默认就是false
+    -->
+    <!--<cache eviction="FIFO" flushInterval="60000"-->
+    <!--       size="512" readOnly="true"/>-->
+
+    <!--配置/启用ehcache-->
+    <cache type="org.mybatis.caches.ehcache.EhcacheCache"/>
+
+    <!--配置实现 updateMonster
+   1. com.hspedu.entity.Monster 可以简写，一会老师讲解.
+   -->
+    <update id="updateMonster" parameterType="Monster">
+        UPDATE `monster`
+        SET `age`=#{age} , `birthday`= #{birthday}, `email` = #{email},
+        `gender` = #{gender} , `name`= #{name}, `salary` = #{salary}
+        WHERE id = #{id}
+    </update>
+
+    <!--配置/实现getMonsterById-->
+    <select id="getMonsterById" resultType="Monster">
+        SELECT * FROM `monster` WHERE id = #{id}
+    </select>
+
+    <!--配置/实现findAllMonster-->
+    <select id="findAllMonster" resultType="Monster">
+        SELECT * FROM `monster`
+    </select>
+</mapper>

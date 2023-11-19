@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace 对应你要的接口路径-->
+<mapper namespace="org.mapper.MonkMapper">
+<!--    增-->
+<insert id="addMonk" parameterType="org.entity.Monk" useGeneratedKeys="true" keyProperty="id">
+    INSERT INTO `monk` (`age`, `birthday`, `name`) VALUES (#{age}, #{birthday}, #{name});
+</insert>
+<!--    删-->
+<delete id="delMonk" parameterType="Integer" >
+    DELETE FROM `monk` WHERE id = #{id}
+</delete>
+<!--    改-->
+<update id="updateMo  k" parameterType="org.entity.Monk">
+    UPDATE `monk` SET `age`=#{age}, `birthday`=#{birthday}, `name`=#{name} WHERE id = #{id}
+</update>
+<!--    查-->
+<select id="getMonkById" resultType="org.entity.Monk">
+    SELECT * FROM `monk` WHERE id = #{id}
+</select>
+<!--    查一群-->
+<select id="findAllMonk" resultType="org.entity.Monk">
+    SELECT * FROM `monk`
+</select>
+</mapper>

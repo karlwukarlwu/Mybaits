@@ -1,0 +1,4 @@
+以后用新的驱动类 他的太老了
+https://blog.csdn.net/a907691592/article/details/96876030
+
+用com.mysql.cj.jdbc.Driver

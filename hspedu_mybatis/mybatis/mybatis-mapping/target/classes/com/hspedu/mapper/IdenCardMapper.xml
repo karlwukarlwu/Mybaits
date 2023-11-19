@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hspedu.mapper.IdenCardMapper">
+
+    <!--
+        1、配置/实现//根据id获取到身份证序列号
+        2、public IdenCard getIdenCardById(Integer id);
+    -->
+    <select id="getIdenCardById" parameterType="Integer"
+            resultType="IdenCard">
+        SELECT * FROM `idencard` WHERE `id` = #{id}
+    </select>
+
+
+    <!--
+    1、根据id获取到身份证序列号, 并查询级联的person
+    2、public IdenCard getIdenCardById2(Integer id);
+    3. 自定义一个resultMap , 完成属性值映射
+    -->
+    <resultMap id="IdenCardResultMap" type="IdenCard">
+        <id property="id" column="id"/>
+        <id property="card_sn" column="card_sn"/>
+        <!--老师写到这里
+        1. 我们分析出来，需要根据 SELECT * FROM idencard WHERE id = #{id} , 返回的 id字段的值
+        2. 作为入参,传递给 一个方法.getPersonByCardId , 通过这个方法，可以返回该idencard对应的person信息
+        -->
+        <association property="person" column="id"
+                     select="com.hspedu.mapper.PersonMapper.getPersonByCardId"/>
+    </resultMap>
+    <select id="getIdenCardById2" parameterType="Integer" resultMap="IdenCardResultMap" >
+        SELECT * FROM idencard WHERE id = #{id}
+    </select>
+</mapper>

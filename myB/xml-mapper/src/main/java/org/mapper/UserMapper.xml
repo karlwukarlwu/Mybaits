@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--老师解读
+1. 这是一个mapper xml 文件
+2. 该文件可以去实现对应的接口的方法
+3. namespace 指定该xml文件和哪个接口对应!!!
+-->
+<mapper namespace="org.mapper.UserMapper">
+
+    <!--
+    1、配置方法public void addUser(User user);
+    2、完成添加用户的任务, 注意这里user属性和表的字段名不一致
+    -->
+    <insert id="addUser" parameterType="User">
+        INSERT INTO `user` (`user_email`,`user_name`)
+        VALUE (#{useremail}, #{username})
+    </insert>
+
+
+<!--    当类的属性名和表字段不同的解决方案 用resultmap或者用As都行-->
+    <!--
+    1. 配置方法public List<User> findAllUser();
+    2. 返回所有的user信息
+    3. 按照传统的方式完成，会出现什么问题?=> 如果对象属性名和表字段相同时，就会设置值, 如果不同, 就会是默认值
+    4. 我们可以使用resultMap来解决
+    5. resultMap : 表示我们要定义一个resultMap
+    6. id="findAllUserMap"  => id 就是程序员指定的resultMap id ,后面通过id可以使用他
+    7. type="User" ， 就是你需要返回的对象类型
+    8. result column="user_email" property="useremail":  column="user_email" 表的字段名, property="useremail" 对象属性名
+    9. resultMap="findAllUserMap" 表示使用我们定义的 resultMap , 通过id关联
+    -->
+    <resultMap id="findAllUserMap" type="User">
+<!--        column是表字段 property是类属性名-->
+        <result column="user_email" property="useremail"/>
+        <result column="user_name" property="username"/>
+    </resultMap>
+    <select id="findAllUser" resultMap="findAllUserMap">
+        SELECT * FROM `user`
+    </select>
+
+<!--另一种解决方式 用As给表的column设置别名-->
+    <!--使用表字段别名，来解决表的字段名和对象属性名，不一致问题, 可以用，但是我们仍然推荐使用resultmap-->
+    <!--<select id="findAllUser" resultType="User">-->
+    <!--    SELECT user_id ,user_name AS username,user_email AS useremail FROM `user`-->
+    <!--</select>-->
+</mapper>

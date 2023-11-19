@@ -1,0 +1,29 @@
+当然，如果你想在一个`UPDATE`语句中修改多个列，你可以这样做。假设你有一个名为`employees`的表，它包含`id`, `name`, `salary`, 和`department`等列。现在，如果你想要更新某个特定员工的薪资和部门，你可以像下面这样写：
+
+```sql
+UPDATE employees
+SET salary = 60000, department = 'Marketing'
+WHERE id = 456;
+```
+
+在这个例子中：
+
+- `SET`子句同时更新了`salary`和`department`两个列。
+- `salary`被设置为`60000`，而`department`被设置为`'Marketing'`。
+- `WHERE`子句指定了这些更改应用于`id`为`456`的员工。
+
+如果你想要根据不同的条件更新不同的行，你可以使用更复杂的`WHERE`子句。例如，假设你想要给所有在`IT`部门工作的员工加薪，同时将所有在`HR`部门且薪资低于某个阈值的员工调到`Marketing`部门，你可以写两个不同的`UPDATE`语句：
+
+```sql
+-- 给IT部门的员工加薪
+UPDATE employees
+SET salary = salary * 1.1
+WHERE department = 'IT';
+
+-- 将HR部门薪资低于30000的员工调到Marketing部门
+UPDATE employees
+SET department = 'Marketing'
+WHERE department = 'HR' AND salary < 30000;
+```
+
+这两个语句分别针对满足特定条件的行进行更新。使用`AND`和`OR`操作符可以帮助你定义更复杂的条件。记住，在执行这样的操作之前，最好先在测试环境中验证SQL语句的正确性，并且确保数据库的备份是最新的。

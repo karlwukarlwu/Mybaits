@@ -1,0 +1,9 @@
+1) mybatis 的核心配置文件
+mybatis-config.xml: 进行全局配置，全局只能有一个这样的配置文件
+XxxMapper.xml 配置多个SQL，可以有多个XxxMappe.xml 配置文件
+2) 通过mybatis-config.xml 配置文件得到SqlSessionFactory
+3) 通过SqlSessionFactory 得到SqlSession，用SqlSession 就可以操作数据
+        4) SqlSession 底层是Executor(执行器), 有2 重要的实现类, 有很多方法（baseExecutor和CachingExecutor）
+        5) MappedStatement 是通过XxxMapper.xml 中定义, 生成的statement 对象
+        6) 参数输入执行并输出结果集, 无需手动判断参数类型和参数下标位置, 且自动将结果集
+        映射为Java 对象

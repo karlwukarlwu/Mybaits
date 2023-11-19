@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace 对应你要的接口路径-->
+<!--什么时候用parameterType =“map" 当你的目标方法参数是Map<String, Object>这种格式的时候-->
+<mapper namespace="org.mapper.MonsterMapper">
+
+    <!--
+    1. 配置方法public List<Monster> findMonsterByAge(@Param(value="age") Integer age);
+    2. 请查询age 大于 10 的所有妖怪，如果程序员输入的age 不大于 0, 则输出所有的妖怪
+    3. 老师按照以前方式来配置->问题? 如果使用原来的#{age} 在test表达式是取不出入参值
+    4. 解决方案是使用@Param
+public List<Monster> findMonsterByAge(@Param(value = "age") Integer age);
+    -->
+    <select id="findMonsterByAge" resultType="Monster" parameterType="Integer">
+        SELECT * FROM `monster` WHERE 1 = 1
+        <if test="age >= 0">
+<!--            因为age不是属性 且接口用param注解了age 所以这里可以用age当作变量 -->
+            AND age > #{age}
+<!--            这个if框架里面的就算是拼接表达式 按照你的输入动态的返回不同的sql语言-->
+        </if>
+    </select>
+
+<!--    where的作用是解决多个if 同时可能生效的场景-->
+    <!--
+    1、配置public List<Monster> findMonsterByIdAndName(Monster monster);
+    2、查询id 大于 20的，并且名字是 "牛魔王" 的所有妖怪, 注意，如果名字为空，
+        或者输入的id 小于 0, 则不拼接 sql语句(老师梳理：如果名字为空 , 就不带名字条件,
+        如果输入的id 小于 0, 就不带id的条件)
+    3、where + if : WHERE `id` > #{id} AND `name` = #{name}
+    4. 如果我们入参是对象，test表达式中, 直接使用对象的属性名即可
+    5. where标签，会在组织动态sql时，加上where
+    6. mybatis底层自动的去掉多余的AND
+     比如当两个条件都成功 并不会出现两个and where会帮你去掉一个and
+     select * from monster where id > #{id} and name = #{name} 会帮你把之前的and去掉
+    -->
+    <select id="findMonsterByIdAndName" parameterType="Monster" resultType="Monster">
+        SELECT * FROM `monster`
+        <where>
+<!--            这里id是monster的属性 接口方法不用@param来注解-->
+            <if test="id >= 0">
+                AND `id` > #{id}
+            </if>
+            <if test="name != null and name != ''">
+                AND `name` = #{name}
+            </if>
+        </where>
+    </select>
+
+    <!--
+    1、配置/实现public List<Monster> findMonsterByIdOrName_choose(Map<String, Object> map)
+    2、  1) 如果给的name不为空，就按名字查询妖怪，
+        2) 如果指定的id>0，就按id来查询妖怪
+        3) 如果前面两个条件都不满足, 就默认查询 salary > 100的
+        4) 使用mybatis 提供choose-when-otherwise
+    -->
+    <select id="findMonsterByIdOrName_choose" parameterType="map" resultType="Monster">
+        SELECT * FROM `monster`
+        <choose>
+
+            <when test="name != null and name != ''">
+                WHERE `name` = #{name}
+            </when>
+            <when test="id > 0">
+                WHERE `id` > #{id}
+            </when>
+            <otherwise>
+                WHERE `salary` > 100
+            </otherwise>
+        </choose>
+    </select>
+
+    <!--
+        1、配置/实现public List<Monster> findMonsterById_forEach(Map<String, Object> map);
+        2、查询id 为 10, 12, 14 的妖怪
+        3、是foreach标签
+        4. 入参map 中 会如何传入id值 k-v ids - [集合,比如List 10,12,14], 即
+           map 入参中应当有 ids-[10,12,14]
+    -->
+<!--select * from monster where id in (10,12,14) 这个是目标的要求sql语句-->
+<!--    这个是你到时候操纵的时候传入的  map.put("ids", Arrays.asList(10, 12, 14));-->
+    <select id="findMonsterById_forEach" parameterType="map" resultType="Monster">
+        SELECT * FROM `monster`
+        <!-- 老师解读
+        1、 where标签
+        2.  再写入相应的处理代码，比如判断ids 是否为空.. if
+        3. 如果ids不为空，则使用foreach标签进行遍历
+        4. collection="ids" 对应你的入参map的 key - ids
+        5. item="id" 在遍历ids集合时，每次取出的值，对应的变量id
+        6. open="(" 对应的就是sql  (10,12,14) 的第一 (
+        7. separator="," 遍历出来的多个值的 分隔符号 你也可以自己指定
+        8. close=")" 对应的就是sql  (10,12,14) 的最后 )
+        9. #{id} 对应的就是 item="id"
+        -->
+        <if test="ids != null and ids !=''">
+            <where>
+                id IN
+                <foreach collection="ids" item="id" open="(" separator="," close=")">
+                    #{id}
+<!--                    这个#{id} 对应的是上面的item=”id“-->
+                </foreach>
+            </where>
+        </if>
+    </select>
+
+    <!--
+    1. 配置/实现 public List<Monster> findMonsterByName_Trim(Map<String, Object> map);
+    2. 按名字和年龄 查询妖怪，如果sql语句开头有 and | or  就替换成 where
+    3. 老师分析，如果要实现这个功能，其实使用where标签 [加入where 同时会去掉多余的and]
+    4. trim prefix="WHERE" prefixOverrides="and|or|hsp" 若子句的开头为 “AND” 或 “OR  或"hsp"
+    , 就去除   类似于自定义的where标签，帮你去除不限于and和or
+    -->
+<!--    原生sql语句 select * from monster where name = #{name} and age > #{age}-->
+    <select id="findMonsterByName_Trim" parameterType="map" resultType="Monster">
+        SELECT * FROM `monster`
+
+        <trim prefix="WHERE" prefixOverrides="and|or|hsp">
+            <if test="name != null and name != ''">
+                AND `name` = #{name}
+            </if>
+            <if test="age != null and age != ''">
+                AND `age` > #{age}
+            </if>
+        </trim>
+    </select>
+
+    <!--
+    1. 配置/实现 public void updateMonster_set(Map<String, Object> map);
+    2. 请对指定id 的妖怪进行 修改，如果没有设置新的属性，则保持原来的值
+    3. 入参要根据sql语句来配合 map [age-10, email-'xx@sohu.com'...]
+    4. set标签会处理多余的 ,
+    -->
+<!--    原生的sql语句-->
+<!--    update `monster` set age =10,email = uuu@.....where  -->
+    <update id="updateMonster_set" parameterType="map">
+        UPDATE `monster`
+        <set>
+            <if test="age != null and age != ''">
+                `age` = #{age} ,
+            </if>
+            <if test="email != null and email != ''">
+                `email` = #{email} ,
+            </if>
+            <if test="name != null and name != ''">
+                `name` = #{name} ,
+            </if>
+            <if test="birthday != null and birthday != ''">
+                `birthday` = #{birthday} ,
+            </if>
+            <if test="salary != null and salary != ''">
+                `salary` = #{salary} ,
+            </if>
+            <if test="gender != null and gender != ''">
+                `gender` = #{gender} ,
+            </if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+</mapper>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.mapper.PetMapper">
+
+    <!--
+        1、通过User的id来获取pet对象，可能有多个，因此使用List接收
+        2、public List<Pet> getPetByUserId(Integer userId);
+        3. 完成的思路和前面大体相同.
+    -->
+    <resultMap id="PetResultMap" type="Pet">
+        <id property="id" column="id"/>
+        <result property="nickname" column="nickname"/>
+        <association property="user" column="user_id"
+                     select="org.mapper.UserMapper.getUserById" />
+    </resultMap>
+    <select id="getPetByUserId" parameterType="Integer" resultMap="PetResultMap">
+        SELECT * FROM `mybatis_pet` WHERE `user_id` = #{userId}
+    </select>
+
+    <!--老师说明
+        1. 注意体会resultMap带来好处， 直接复用
+        2. 实现/配置public Pet getPetById(Integer id);
+        3. 通过pet的id获取Pet对象
+    -->
+    <select id="getPetById"
+            parameterType="Integer"
+            resultMap="PetResultMap">
+        SELECT * FROM `mybatis_pet` WHERE `id` = #{id}
+    </select>
+</mapper>

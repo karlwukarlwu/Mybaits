@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.mapper.PersonMapper">
+    <resultMap id="PersonResultMap" type="Person">
+        <!--<result property="id" column="id"/>-->
+        <!--id – 一个 ID 结果；标记出作为 ID 的结果可以帮助提高整体性能
+            1.property="id" 表示person 属性 id ,通常是主键
+            2.column="id" 表示对应表的字段
+        -->
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <!--association – 一个复杂类型的关联
+        1. property="card" 表示 Person对象的 card 属性
+        2. javaType="IdenCard" 表示card 属性 的类型
+        3. column="id" 是从我们的 下面这个语句查询后返回的字段
+        SELECT *  FROM `person`,`idencard` WHERE `person`.id=1
+        AND `person`.card_id = `idencard`.id
+        -->
+        <association property="card" javaType="IdenCard">
+            <!--            同理 这里面是card 对象和card 在mysql里面的映射 -->
+            <result property="id" column="id"/>
+            <result property="card_sn" column="card_sn"/>
+        </association>
+    </resultMap>
+    <select id="getPersonById" parameterType="Integer"
+            resultMap="PersonResultMap">
+        SELECT *
+        FROM `person`,
+             `idencard`
+        WHERE `person`.id = #{id}
+          AND `person`.card_id = `idencard`.id
+    </select>
+
+
+<!--    方法二,当我们用方法二的时候 我们需要拆分sql语句 变成多个单表查询 并把外键传到需要进行下一个查询的语句的属性中-->
+    <resultMap id="PersonResultMap2" type="Person">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <!--老韩再次解读
+        1. mybatis第二种方式核心思想: 将这个多表联查，分解成单表操作 , 这样简洁，而且易于维护 ,推荐
+        2. 而且可以复用你已经写好的方法 -组合
+        3. property="card": 表示 Person对象的 card 属性
+        4. column="card_id" 这个是
+        SELECT * FROM `person` WHERE `id` = #{id}  返回的 字段 card_id 信息/数据
+        5. 返回的 字段 card_id 信息/数据 作为getIdenCardById入参, 来执行
+        -->
+
+        <association property="card" column="card_id"
+                     select="org.mapper.IdenCardMapper.getIdenCardById"/>
+        <!--        他的思路是先去查符合id的person 然后拿着person的card Id去查card -->
+        <!-- 这里等于是他拿着这个去了另一个接口 走了另一个xml配置的查询方法 然后把那个结果给返回回来了-->
+        <!--        <select id="getIdenCardById" parameterType="Integer"-->
+        <!--                resultType="IdenCard">-->
+        <!--            SELECT * FROM `idencard` WHERE `id` = #{id}-->
+        <!--        </select>-->
+
+    </resultMap>
+    <select id="getPersonById2" parameterType="Integer" resultMap="PersonResultMap2">
+        SELECT *
+        FROM `person`
+        WHERE `id` = #{id}
+    </select>
+</mapper>

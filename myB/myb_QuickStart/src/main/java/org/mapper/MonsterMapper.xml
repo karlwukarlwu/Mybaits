@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace 对应你要的接口路径-->
+<mapper namespace="org.mapper.MonsterMapper">
+  <!--配置addMonster
+       1. id="addMonster" 就是接口的方法名
+       2. parameterType="org.entity.Monster" 放入的形参的类型
+       3. 注意"org.entity.Monster" 可以简写 先别简写 后面估计要配置
+       如果想简写 在resource下面的mybatis-config.xml配置
+       4. 写入sql语句=> 老师建议，现在sqlyog 写完成-测试通过，再拿过来
+       5. (`age`, `birthday`, `email`, `gender`, `name`, `salary`) 表的字段
+       6. (#{age}, #{birthday}, #{email}, #{gender}, #{name}, #{salary}) 是从传入的monster对象属性值
+       7. 这里 #{age} age 对应monster对象的属性名，其它一样
+      useGeneratedKeys="true" keyProperty="id" 意味着打开了自增长的key 且key的属性名是id
+   -->
+  <insert id="addMonster" parameterType="org.entity.Monster" useGeneratedKeys="true" keyProperty="id">
+<!--    理论上我这个是对的 但是不知道为什么不识别-->
+    INSERT INTO `monster`
+    (`age`, `birthday`, `email`, `gender`, `name`, `salary`)
+    VALUES (#{age}, #{birthday}, #{email}, #{gender}, #{name}, #{salary})
+  </insert>
+
+    <!--配置/实现delMonster方法
+   1. 这里 java.lang.Integer 这是Java类型， 可以简写成 Integer
+   2. 这里写入delete
+   -->
+    <delete id="delMonster" parameterType="Integer">
+        DELETE FROM `monster` WHERE id = #{id}
+    </delete>
+
+    <!--配置实现 updateMonster
+   1. com.hspedu.entity.Monster 可以简写，一会老师讲解.
+   -->
+    <update id="updateMonster" parameterType="Monster">
+        UPDATE `monster`
+        SET `age`=#{age} , `birthday`= #{birthday}, `email` = #{email},
+        `gender` = #{gender} , `name`= #{name}, `salary` = #{salary}
+        WHERE id = #{id}
+    </update>
+
+    <!--配置/实现getMonsterById parameterType可选 他会去推测 具体看文档了-->
+<!--    返回类型是集合里面的数据的类型 不是集合类型-->
+    <select id="getMonsterById" resultType="Monster">
+        SELECT * FROM `monster` WHERE id = #{id}
+    </select>
+    <!--配置/实现findAllMonster-->
+    <select id="findAllMonster" resultType="Monster">
+        SELECT * FROM `monster`
+    </select>
+</mapper>

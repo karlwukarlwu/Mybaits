@@ -1,0 +1,31 @@
+真的乱 但是能跑
+适用于a类有b属性 b类又有a属性
+    xml 1的配置
+     <resultMap id="PetResultMap" type="Pet">
+            <id property="id" column="id"/>
+            <result property="nickname" column="nickname"/>
+            <association property="user" column="user_id"
+                         select="org.mapper.UserMapper.getUserById" />
+        </resultMap>
+        <select id="getPetByUserId" parameterType="Integer" resultMap="PetResultMap">
+            SELECT * FROM `mybatis_pet` WHERE `user_id` = #{userId}
+        </select>
+        xml 2的配置
+         <resultMap id="UserResultMap" type="User">
+                <id property="id" column="id"/>
+                <result property="name" column="name"/>
+                <!--老师解读：因为pets属性是集合，因此这里需要是collection标签来处理
+                1. ofType="Pet" 指定返回的集合中存放的数据类型Pet
+                2. collection 表示 pets 是一个集合
+                3. property="pets" 是返回的user对象的属性 pets
+                4. column="id" SELECT * FROM `mybatis_user` WHERE `id` = #{id} 返回的id字段对应的值
+                -->
+                <collection property="pets" column="id" ofType="Pet"
+                            select="org.mapper.PetMapper.getPetByUserId"/>
+            </resultMap>
+            <select id="getUserById" parameterType="Integer" resultMap="UserResultMap">
+                SELECT * FROM `mybatis_user` WHERE `id` = #{id}
+            </select>
+
+       然后类中不能toString 因为会无线循环调用
+       但是可以掉属性的方法和属性的属性

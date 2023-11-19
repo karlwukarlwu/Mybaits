@@ -1,0 +1,47 @@
+需求情景 我person可以通过id找到身份证 身份证又可以找到person
+  那么我们需要person中有一个card属性  card中有一个person属性
+  当我们进行查询的时候怎么办呢
+  通过mybatis进行级联查询
+    第一次查询返回值设置为map 因为我们需要给属性赋值
+        当跳转到第二次查询的时候 返回值设置成type 因为我们不需要重新给第二次的类属性赋值
+            第一次的值就是第二次类的属性的值 所以不需要重新赋值
+            但是如果我们还是用map的话 会形成递归调用 会出现死循环
+            所以第二次查询的时候用type即可
+
+
+当我们不需要person的对象属性的时候 用resultType 当我们关注对象属性的时候 用用resultMap
+
+
+  <!--
+    1、根据id获取到身份证序列号, 并查询级联的person
+    2、public IdenCard getIdenCardById2(Integer id);
+    3. 自定义一个resultMap , 完成属性值映射
+    -->
+    <resultMap id="IdenCardResultMap" type="IdenCard">
+        <id property="id" column="id"/>
+        <id property="card_sn" column="card_sn"/>
+        <!--老师写到这里
+        1. 我们分析出来，需要根据 SELECT * FROM idencard WHERE id = #{id} , 返回的 id字段的值
+        2. 作为入参,传递给 一个方法.getPersonByCardId , 通过这个方法，可以返回该idencard对应的person信息
+        -->
+        <association property="person" column="id"
+                     select="com.hspedu.mapper.PersonMapper.getPersonByCardId"/>
+        <!--        再另一个mapper中配置了这个
+        当我们不需要person的对象属性的时候 用resultType 当我们关注对象属性的时候 用用resultMap
+        <select id="getPersonByCardId" parameterType="Integer" resultType="Person">
+                SELECT *
+                FROM person
+                WHERE card_id = #{cardId}
+            </select>-->
+    </resultMap>
+    <select id="getIdenCardById2" parameterType="Integer" resultMap="IdenCardResultMap">
+        SELECT *
+        FROM idencard
+        WHERE id = #{id}
+    </select>
+
+
+什么意思当person 类中有card 属性  card中又有person属性  互相引用的时候
+进行级联查询 第一次我们可以用resultMap 去取到属性 但当查询属性的时候直接用resultType返回即可
+因为如果再用map 即形成了不断的递归
+用resultType 对象属性自动变成null （因为第一遍查询的时候已经有了相关的属性 所以第二次不需要返回null即可）
